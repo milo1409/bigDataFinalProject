@@ -117,7 +117,6 @@ class Utils:
     def pip_install_requirements(requirements_file: str, *, base_path: Optional[str] = None, logger=None) -> int:
     
         req_path = Utils.resolve_path(requirements_file, base_path=base_path)
-        print(f"Instalando requirements desde: {req_path}", logger=logger)
 
         # Usar el mismo python del runtime
         cmd = [sys.executable, "-m", "pip", "install", "-r", req_path]
