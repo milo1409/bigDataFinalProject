@@ -258,6 +258,7 @@ class DataLoader123:
         }
 
         df["DIA_SEMANA"] = df["DIA_SEMANA_EN"].map(map_dias)
+        df = df.apply(lambda col: col.str.upper() if col.dtype == "object" else col)
 
         return df
 
