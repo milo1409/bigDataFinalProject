@@ -104,15 +104,12 @@ class Utils:
 
         p = str(path).strip()
 
-        # Si ya es absoluta, NO le pegues base_path
         if os.path.isabs(p):
             return str(Path(p).expanduser().resolve())
 
-        # Si es relativa y tengo base_path, la uno
         if base_path:
             return str((Path(base_path).expanduser().resolve() / p).resolve())
 
-        # Si es relativa y no hay base_path, la resuelvo desde cwd
         return str(Path(p).expanduser().resolve())
 
     @staticmethod

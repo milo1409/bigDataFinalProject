@@ -15,7 +15,6 @@ class ExtraerDatosProcesamiento:
     def generar_formato_parquet(self, df: DataFrame, salida_parquet: str, mode: str = "overwrite"):
         salida = self.Utils.resolve_path(salida_parquet, base_path=self.config.get("base_path"))
         df.write.mode(mode).parquet(salida)
-        self.Utils.add_message(f"Parquet generado en: {salida}")
 
     def leer_csv_flexible_spark(
         self,
@@ -47,13 +46,12 @@ class ExtraerDatosProcesamiento:
             except Exception as e:
                 last_err = e
 
-        self.Utils.add_message(f"No se pudo leer {ruta_csv}. Último error: {last_err}")
         return None
 
     def listar_csvs_desde_config(self, key_folder: str = "data_cruda", recursive: bool = True) -> List[str]:
         base = self.config.get("base_path")
         folder_cfg = self.config.get(key_folder)
-        
+
         if not folder_cfg:
             raise KeyError(f"No existe la llave '{key_folder}' en el JSON o está vacía.")
 
@@ -63,7 +61,6 @@ class ExtraerDatosProcesamiento:
         if not rutas:
             raise FileNotFoundError(f"No se encontraron CSV en: {folder}")
 
-        self.Utils.add_message(f"CSV encontrados: {len(rutas)} en {folder}")
         return rutas
 
     def leer_todos_csv_desde_config(
