@@ -40,7 +40,6 @@ class ExtraerDatosProcesamiento:
                     .options(**options)
                     .load(ruta_csv)
                 )
-                # acción mínima para fallar rápido
                 df.limit(1).count()
                 return df
             except Exception as e:

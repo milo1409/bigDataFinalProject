@@ -125,3 +125,116 @@ class procesamiento_datos_spark():
             "parquet": ruta_parquet_out,
             "delta": ruta_delta_out,
         }
+    
+
+
+
+# Funcion recursiva para abrir cada CSV y convertirlo en un dataframe
+def leer_csv_flexible(ruta_csv: str) -> pd.DataFrame | None:
+  try:
+    return pd.read_csv(ruta_csv, sep=";", encoding="utf-8", low_memory=False)
+  except UnicodeDecodeError:
+    try:
+        return pd.read_csv(ruta_csv, sep=";", encoding="latin-1", low_memory=False)
+    except Exception as e:
+        print(f"No se pudo leer el CSV {ruta_csv}: {e}")
+        return None
+# Funcion para obtener la ruta y tamaño del directorio consultado
+def get_dir_size(path: str) -> int:
+    total = 0
+    for root, dirs, files in os.walk(path):
+        for f in files:
+            fp = os.path.join(root, f)
+            total += os.path.getsize(fp)
+    return total
+
+# Funciones especializadas para el reemplazo de caracteres especiales
+def reparar_texto_pandas(s):
+    if pd.isna(s):
+        return s
+    if not isinstance(s, str):
+        s = str(s)
+    return patron.sub(lambda m: REEMPLAZOS_COMUNES[m.group(0)], s)
+
+
+def reparar_dataframe_pandas(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    cols_texto = df.select_dtypes(include=["object", "string"]).columns
+
+    for col_name in cols_texto:
+        df[col_name] = df[col_name].apply(reparar_texto_pandas)
+
+    return df
+
+# Funcion para la unificacion de columnas repetidas
+def unificar_columnas_duplicadas(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    df = df.replace(r"^\s*$", pd.NA, regex=True)
+
+    for canon, variantes in DUPLICATE_GROUPS.items():
+        presentes = [c for c in variantes if c in df.columns]
+        if not presentes:
+            continue
+        base = presentes[0]
+
+        if base != canon:
+            df[canon] = df[base]
+        else:
+            canon = base
+        for other in presentes[1:]:
+            mask = df[canon].isna() & df[other].notna()
+            if mask.any():
+                df.loc[mask, canon] = df.loc[mask, other]
+
+        drop_cols = [c for c in presentes if c != canon]
+        if drop_cols:
+            df = df.drop(columns=drop_cols)
+
+    return df
+
+# Funciones para ajustar los valores asociados a las localidades
+def validar_consistencia_localidad_pandas(df: pd.DataFrame, catalogo_localidades: Dict[str, str], col_codigo: str = "CODIGO_LOCALIDAD",col_localidad: str = "LOCALIDAD") -> pd.DataFrame:
+  df = df.copy()
+  def localidad_catalogo(codigo):
+      if pd.isna(codigo):
+          return np.nan
+      return catalogo_localidades.get(codigo) or catalogo_localidades.get(str(codigo))
+
+  df["LOCALIDAD_CATALOGO"] = df[col_codigo].apply(localidad_catalogo)
+
+  mask = (
+      df[col_localidad].notna()
+      & df["LOCALIDAD_CATALOGO"].notna()
+      & (df[col_localidad] != df["LOCALIDAD_CATALOGO"])
+  )
+
+  df_inconsistencias = df.loc[mask, [
+      "NUMERO_INCIDENTE",
+      col_codigo,
+      col_localidad,
+      "LOCALIDAD_CATALOGO"
+  ]].rename(columns={col_localidad: "LOCALIDAD_CSV"})
+
+  print("Inconsistencias con la localidad encontradas (pandas):")
+  print(df_inconsistencias.head())
+
+  return df_inconsistencias
+
+
+def corregir_localidad_desde_errores_pandas(df: pd.DataFrame, df_errores: pd.DataFrame, col_id="NUMERO_INCIDENTE", col_localidad="LOCALIDAD"):
+  df = df.copy()
+  map_localidad = (
+      df_errores[[col_id, "LOCALIDAD_CATALOGO"]]
+      .drop_duplicates(subset=[col_id])
+      .set_index(col_id)["LOCALIDAD_CATALOGO"]
+      .to_dict()
+  )
+
+  df[col_localidad] = df.apply(
+      lambda row: map_localidad.get(row[col_id], row[col_localidad]),
+      axis=1
+  )
+
+  print(f"Corrección de localidades aplicada. Registros corregidos: {len(map_localidad)}")
+
+  return df
