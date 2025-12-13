@@ -147,3 +147,17 @@ class Utils:
             base_path = fallback_base_path
 
         return Utils.pip_install_requirements(req, base_path=base_path, logger=logger)
+    
+    @staticmethod
+    def list_files(folder: str, pattern: str = "*", recursive: bool = True):
+
+        root = Path(folder).expanduser().resolve()
+        if not root.exists():
+            return []
+
+        if recursive:
+            paths = root.rglob(pattern)
+        else:
+            paths = root.glob(pattern)
+
+        return sorted([str(p.resolve()) for p in paths if p.is_file()])
