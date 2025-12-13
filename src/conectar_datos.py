@@ -53,7 +53,7 @@ class ExtraerDatosProcesamiento:
     def listar_csvs_desde_config(self, key_folder: str = "data_cruda", recursive: bool = True) -> List[str]:
         base = self.config.get("base_path")
         folder_cfg = self.config.get(key_folder)
-
+        
         if not folder_cfg:
             raise KeyError(f"No existe la llave '{key_folder}' en el JSON o está vacía.")
 

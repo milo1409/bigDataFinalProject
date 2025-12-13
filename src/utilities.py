@@ -95,23 +95,24 @@ class Utils:
         return json.loads(p.read_text(encoding=encoding))
     
     @staticmethod
-    def resolve_path(path: str, base_path: Optional[str] = None) -> str:
+    def resolve_path(path: str, base_path: str | None = None) -> str:
+        import os
+        from pathlib import Path
 
         if path is None:
             raise ValueError("path no puede ser None")
 
         p = str(path).strip()
 
-        if p.startswith("dbfs:/"):
-            p = "/dbfs/" + p[len("dbfs:/"):].lstrip("/")
+        # Si ya es absoluta, NO le pegues base_path
+        if os.path.isabs(p):
+            return str(Path(p).expanduser().resolve())
 
-        remote_prefixes = ("s3://", "abfss://", "gs://", "wasbs://", "https://", "http://")
-        if p.startswith(remote_prefixes):
-            return p
+        # Si es relativa y tengo base_path, la uno
+        if base_path:
+            return str((Path(base_path).expanduser().resolve() / p).resolve())
 
-        if base_path and not os.path.isabs(p):
-            p = str(Path(base_path) / p)
-
+        # Si es relativa y no hay base_path, la resuelvo desde cwd
         return str(Path(p).expanduser().resolve())
 
     @staticmethod
