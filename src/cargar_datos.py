@@ -71,7 +71,8 @@ class DataLoader123:
     @staticmethod
     def procesar_todos_csv_crudos(
         ruta_cruda: str,
-        duplicate_groups: Dict
+        duplicate_groups: Dict,
+        columnas_esperadas: List[str]
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
 
         archivos = [
@@ -91,11 +92,14 @@ class DataLoader123:
             df = DataLoader123.reparar_dataframe_pandas(df)
             df = DataLoader123.unificar_columnas_duplicadas(df, duplicate_groups)
 
+            df = df.loc[:, ~df.columns.astype(str).str.startswith("Unnamed")]
+
+            cols_presentes = [c for c in columnas_esperadas if c in df.columns]
+            df = df[cols_presentes]
+
             dfs.append(df)
 
         df_total = pd.concat(dfs, ignore_index=True) if dfs else pd.DataFrame()
-        df_inconsistencias_total = (
-            pd.concat(inconsistencias, ignore_index=True) if inconsistencias else pd.DataFrame()
-        )
+        df_inconsistencias_total = pd.concat(inconsistencias, ignore_index=True) if inconsistencias else pd.DataFrame()
 
         return df_total, df_inconsistencias_total
