@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Union, Callable, Iterable
 import subprocess
 import sys
+from pyspark.sql import SparkSession
 
 try:
     import psutil
@@ -161,3 +162,7 @@ class Utils:
             paths = root.glob(pattern)
 
         return sorted([str(p.resolve()) for p in paths if p.is_file()])
+    
+    @staticmethod
+    def get_spark(app_name="ETL", master="local[*]"):
+        return SparkSession.builder.appName(app_name).master(master).getOrCreate()
