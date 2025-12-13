@@ -117,7 +117,7 @@ class Utils:
     def pip_install_requirements(requirements_file: str, *, base_path: Optional[str] = None, logger=None) -> int:
     
         req_path = Utils.resolve_path(requirements_file, base_path=base_path)
-        Utils.add_message(f"Instalando requirements desde: {req_path}", logger=logger)
+        print(f"Instalando requirements desde: {req_path}", logger=logger)
 
         # Usar el mismo python del runtime
         cmd = [sys.executable, "-m", "pip", "install", "-r", req_path]
@@ -133,14 +133,7 @@ class Utils:
         return res.returncode
 
     @staticmethod
-    def pip_install_requirements_from_config(
-        cfg: Dict[str, Any],
-        *,
-        key: str = "load_requirements",
-        base_key: Optional[str] = "base_path",
-        fallback_base_path: Optional[str] = None,
-        logger=None
-    ) -> int:
+    def pip_install_requirements_from_config(cfg: Dict[str, Any],*,key: str = "load_requirements",base_key: Optional[str] = "base_path",fallback_base_path: Optional[str] = None,logger=None) -> int:
         if key not in cfg:
             raise KeyError(f"No existe la llave '{key}' en la configuración.")
 
