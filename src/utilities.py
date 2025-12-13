@@ -278,8 +278,10 @@ class Utils:
         print(f"  Filas: {n_filas:,} | Columnas: {n_columnas}")
 
         cols_esp = Utils.cfg_get(cfg, columnas_path, default=[])
+        cols_esp = list(cols_esp) if cols_esp is not None else []
         cols_faltantes = [c for c in cols_esp if c not in columnas_reales]
-        cols_extra = [c for c in columnas_reales if c not in cols_esp] if cols_esp else []
+        cols_extra = [c for c in columnas_reales if c not in cols_esp]
+
 
         print("  Columnas faltantes:", cols_faltantes if cols_faltantes else "NINGUNA")
         print("  Columnas extra:", cols_extra if cols_extra else "NINGUNA")
