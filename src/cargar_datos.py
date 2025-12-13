@@ -107,6 +107,19 @@ class DataLoader123:
     
     def estandarizacion_columnas(df):
 
+        df = df.copy()
+
+        cols_texto = df.select_dtypes(include=["object", "string"]).columns
+
+        for col in cols_texto:
+            df[col] = (
+                df[col]
+                .astype("string")                               # asegurar tipo texto
+                .str.replace("\xa0", " ", regex=False)          # quitar espacios no separables
+                .str.strip()                                    # quitar espacios al inicio/fin
+                .str.upper()                                    # MAYÚSCULAS
+            )
+
         REEMPLAZOS_COMUNES = {
             "Ã¡": "á", "Ã©": "é", "Ã­": "í", "Ã³": "ó","ÃÁ": "Á", "Ã‰": "É", "ÃÍ": "Í", "Ã“": "Ó", "Ãš": "Ú",
             "Ã±": "ñ", "Ã‘": "Ñ","Ã¼": "ü", "Ãœ": "Ü","Â¿": "¿", "Â¡": "¡","Â°": "°", "Âª": "ª", "Âº": "º",
@@ -183,7 +196,6 @@ class DataLoader123:
             "LA CANDELARIA": "CANDELARIA",
         }
 
-        # Funciones especializadas para el reemplazo de caracteres especiales
         def reparar_texto_pandas(s):
             if pd.isna(s):
                 return s
@@ -238,11 +250,7 @@ class DataLoader123:
         df["TIPO_INCIDENTE"] = df["TIPO_INCIDENTE"].replace(mapeo_unidad)
         df["PRIORIDAD_FINAL"] = df["PRIORIDAD_FINAL"].replace(mapeo_unidad)
         df = reparar_dataframe_pandas(df)
-
-        # Convertir fecha a datetime
         df["FECHA_INICIO_DESPLAZAMIENTO_MOVIL"] = pd.to_datetime(df["FECHA_INICIO_DESPLAZAMIENTO_MOVIL"], errors="coerce")
-
-        # Crear columnas derivadas
         df["FECHA"] = df["FECHA_INICIO_DESPLAZAMIENTO_MOVIL"].dt.date
         df["HORA"] = df["FECHA_INICIO_DESPLAZAMIENTO_MOVIL"].dt.hour
         df["DIA_SEMANA_EN"] = df["FECHA_INICIO_DESPLAZAMIENTO_MOVIL"].dt.day_name()
@@ -258,20 +266,6 @@ class DataLoader123:
         }
 
         df["DIA_SEMANA"] = df["DIA_SEMANA_EN"].map(map_dias)
-        df = df.copy()
-
-        # Seleccionar solo columnas de tipo texto (object / string)
-        cols_texto = df.select_dtypes(include=["object", "string"]).columns
-
-        for col in cols_texto:
-            # convertir a string, limpiar caracteres raros y pasar a MAYÚSCULA
-            df[col] = (
-                df[col]
-                .astype("string")                               # asegurar tipo texto
-                .str.replace("\xa0", " ", regex=False)          # quitar espacios no separables
-                .str.strip()                                    # quitar espacios al inicio/fin
-                .str.upper()                                    # MAYÚSCULAS
-            )
 
         return df
 
