@@ -2,6 +2,7 @@ from typing import Dict, Tuple, List
 import os
 import pandas as pd
 import re
+import numpy as np
 
 class DataLoader123:
 
@@ -103,3 +104,160 @@ class DataLoader123:
         df_inconsistencias_total = pd.concat(inconsistencias, ignore_index=True) if inconsistencias else pd.DataFrame()
 
         return df_total, df_inconsistencias_total
+    
+    def estandarizacion_columnas(df):
+
+        REEMPLAZOS_COMUNES = {
+            "Ã¡": "á", "Ã©": "é", "Ã­": "í", "Ã³": "ó","ÃÁ": "Á", "Ã‰": "É", "ÃÍ": "Í", "Ã“": "Ó", "Ãš": "Ú",
+            "Ã±": "ñ", "Ã‘": "Ñ","Ã¼": "ü", "Ãœ": "Ü","Â¿": "¿", "Â¡": "¡","Â°": "°", "Âª": "ª", "Âº": "º",
+            "â€“": "–", "â€”": "—", "â€˜": "‘", "â€™": "’", "â€œ": "“", "â€": "”","â€¢": "•", "â€¦": "…",
+            "Ã·": "I","Â§": "§","÷": "I","µ": "A","•": "N","‡": "O","§": "ñ","ê": "E","?": "I","¢": "N","ù":"ñ","¤":"n","¥":"N","à":"O","Ö":"O","":"e","\xa0":"A","¡":"I",
+        }
+
+        patron = re.compile("|".join(map(re.escape, REEMPLAZOS_COMUNES.keys())))
+
+        mapeo_unidad = {
+            "ANOS": "AÑOS",
+            "AÑOS": "AÑOS",
+            "AÇÑOS": "AÑOS",
+            "SIN_DATO": np.nan,
+            "NAN": np.nan,
+            "CONVULSINN":"CONVULSIÓN",
+            "CONVULSIÓN":"CONVULSION",
+            "INTOXICACINN":"INTOXICACIÓN",
+            "INTOXICACIÓN":"INTOXICACION",
+            "ELECTROCUCINN / RESCATE":"ELECTROCUCION / RESCATE",
+            "ELECTROCUCIÓN / RESCATE":"ELECTROCUCION / RESCATE",
+            "ACCIDENTE DE AVIACINN": "ACCIDENTE DE AVIACION",
+            "DOLOR TORAXCICO":"DOLOR TORÁCICO",
+            "DOLOR TORÁCICO":"DOLOR TORACICO",
+            "PATOLOGÍA GINECOBSTÉTRICA":"PATOLOGIA GINECOBSTETRICA",
+            "SÍNTOMAS GASTROINTESTINALES":"SINTOMAS GASTROINTESTINALES",
+            "CAÍDA DE ALTURA":"CAIDA DE ALTURA",
+            "ACOMPAÑAMIENTO EVENTO":"ACOMPANAMIENTO EVENTO",
+            "ACOEVE":"ACV",
+            "CRITCA":"CRITICA",
+            "ENGATIVAX":"ENGATIVA",
+            "ENGATIVÁ":"ENGATIVA",
+            "SAN CRISTNBAL":"SAN CRISTOBAL",
+            "FONTIBNN":"FONTIBON",
+            "LOS MAXRTIRES":"LOS MARTIRES",
+            "FONTIBÓN":"FONTIBON",
+            "USAQUÉN": "USAQUEN",
+            "CIUDAD BOLÍVAR":"CIUDAD BOLIVAR",
+            "LOS MÁRTIRES":"LOS MARTIRES",
+            "SAN CRISTÓBAL":"SAN CRISTOBAL",
+            "ANTONIO NARIÑO":"ANTONIO NARINO"
+        }
+
+        catalogo_localidades = {
+            "USAQUEN":"1",
+            "CHAPINERO":"2",
+            "SANTA FE":"3",
+            "SAN CRISTOBAL":"4",
+            "USME":"5",
+            "TUNJUELITO":"6",
+            "BOSA":"7",
+            "KENNEDY":"8",
+            "FONTIBON":"9",
+            "ENGATIVA":"10",
+            "SUBA":"11",
+            "BARRIOS UNIDOS":"12",
+            "TEUSAQUILLO":"13",
+            "LOS MARTIRES":"14",
+            "ANTONIO NARINO":"15",
+            "PUENTE ARANDA":"16",
+            "CANDELARIA":"17",
+            "RAFAEL URIBE URIBE":"18",
+            "CIUDAD BOLIVAR": "19",
+            "SUMAPAZ":"20",
+            "SIN_D":"SIN_D"
+
+        }
+
+        correcciones_nombres_localidad = {
+            "SAN CRISTNBAL": "SAN CRISTOBAL",
+            "ENGATIVAX": "ENGATIVA",
+            "FONTIBNN": "FONTIBON",
+            "LOS MAXRTIRES": "LOS MARTIRES",
+            "LA CANDELARIA": "CANDELARIA",
+        }
+
+        # Funciones especializadas para el reemplazo de caracteres especiales
+        def reparar_texto_pandas(s):
+            if pd.isna(s):
+                return s
+            if not isinstance(s, str):
+                s = str(s)
+            return patron.sub(lambda m: REEMPLAZOS_COMUNES[m.group(0)], s)
+
+
+        def reparar_dataframe_pandas(df: pd.DataFrame) -> pd.DataFrame:
+            df = df.copy()
+            cols_texto = df.select_dtypes(include=["object", "string"]).columns
+
+            for col_name in cols_texto:
+                df[col_name] = df[col_name].apply(reparar_texto_pandas)
+
+            return df
+
+        def estandarizar_codigo_localidad(valor):
+            if pd.isna(valor):
+                return "SIN_D"
+
+            v = str(valor).strip().upper()
+            if v in ("NAN", "SIN_D", "SIN_DATO", "", "NULL"):
+                return "SIN_D"
+
+            m = re.match(r"^(\d+)(?:\.0+)?$", v)
+            if m:
+                return m.group(1)
+
+            if v in correcciones_nombres_localidad:
+                v = correcciones_nombres_localidad[v]
+
+            if v in catalogo_localidades:
+                return catalogo_localidades[v]
+
+            return "SIN_D"
+        
+        df["CODIGO_LOCALIDAD_STD"] = df["CODIGO_LOCALIDAD"].apply(estandarizar_codigo_localidad)
+        df["CODIGO_LOCALIDAD_INT"] = (
+            pd.to_numeric(
+                df["CODIGO_LOCALIDAD_STD"].replace("SIN_D", np.nan),
+                errors="coerce"
+            ).astype("Int64")
+        )
+        df["CODIGO_LOCALIDAD"] = df["CODIGO_LOCALIDAD_INT"]
+        df = df.drop(columns=["CODIGO_LOCALIDAD_STD"])
+        df = df.drop(columns=["CODIGO_LOCALIDAD_INT"])
+        df["LOCALIDAD"] = df["LOCALIDAD"].replace(mapeo_unidad)
+        df["GENERO"] = df["GENERO"].replace(mapeo_unidad)
+        df["EDAD"] = pd.to_numeric(df["EDAD"], errors="coerce").astype("Int64")
+        df["UNIDAD"] = df["UNIDAD"].replace(mapeo_unidad)
+        df["TIPO_INCIDENTE"] = df["TIPO_INCIDENTE"].replace(mapeo_unidad)
+        df["PRIORIDAD_FINAL"] = df["PRIORIDAD_FINAL"].replace(mapeo_unidad)
+        df = reparar_dataframe_pandas(df)
+
+        # Convertir fecha a datetime
+        df["FECHA_INICIO_DESPLAZAMIENTO_MOVIL"] = pd.to_datetime(df["FECHA_INICIO_DESPLAZAMIENTO_MOVIL"], errors="coerce")
+
+        # Crear columnas derivadas
+        df["FECHA"] = df["FECHA_INICIO_DESPLAZAMIENTO_MOVIL"].dt.date
+        df["HORA"] = df["FECHA_INICIO_DESPLAZAMIENTO_MOVIL"].dt.hour
+        df["DIA_SEMANA_EN"] = df["FECHA_INICIO_DESPLAZAMIENTO_MOVIL"].dt.day_name()
+
+        map_dias = {
+            "Monday": "Lunes",
+            "Tuesday": "Martes",
+            "Wednesday": "Miércoles",
+            "Thursday": "Jueves",
+            "Friday": "Viernes",
+            "Saturday": "Sábado",
+            "Sunday": "Domingo"
+        }
+
+        df["DIA_SEMANA"] = df["DIA_SEMANA_EN"].map(map_dias)
+
+        return df
+
