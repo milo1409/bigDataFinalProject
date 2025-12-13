@@ -11,6 +11,6 @@ ipywidgets
 geopandas
 beautifulsoup4
 XlsxWriter
-pyspark==3.5.1
+pyspark==4.0.0
 pandas
 pyarrow
