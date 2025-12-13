@@ -1,24 +1,13 @@
-# Core data processing
 pandas
 numpy
 pyspark
 delta-spark
-
-# Performance / utilities
 psutil
 requests
 gdown
-
-# Visualization / dashboards / widgets
 plotly
 dash
 ipywidgets
-
-# Geospatial (used in Actividad_2_UN4.ipynb)
 geopandas
-
-# Web scraping (BeautifulSoup)
 beautifulsoup4
-
-# Excel writing
 XlsxWriter
