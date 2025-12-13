@@ -6,6 +6,8 @@ import time
 import functools
 from pathlib import Path
 from typing import Any, Dict, Optional, Union, Callable, Iterable
+import subprocess
+import sys
 
 try:
     import psutil
@@ -90,3 +92,66 @@ class Utils:
         if not p.exists():
             raise FileNotFoundError(f"No existe el archivo: {p}")
         return json.loads(p.read_text(encoding=encoding))
+    
+    @staticmethod
+    def resolve_path(path: str, base_path: Optional[str] = None) -> str:
+
+        if path is None:
+            raise ValueError("path no puede ser None")
+
+        p = str(path).strip()
+
+        if p.startswith("dbfs:/"):
+            p = "/dbfs/" + p[len("dbfs:/"):].lstrip("/")
+
+        remote_prefixes = ("s3://", "abfss://", "gs://", "wasbs://", "https://", "http://")
+        if p.startswith(remote_prefixes):
+            return p
+
+        if base_path and not os.path.isabs(p):
+            p = str(Path(base_path) / p)
+
+        return str(Path(p).expanduser().resolve())
+
+    @staticmethod
+    def pip_install_requirements(requirements_file: str, *, base_path: Optional[str] = None, logger=None) -> int:
+    
+        req_path = Utils.resolve_path(requirements_file, base_path=base_path)
+        Utils.add_message(f"Instalando requirements desde: {req_path}", logger=logger)
+
+        # Usar el mismo python del runtime
+        cmd = [sys.executable, "-m", "pip", "install", "-r", req_path]
+        res = subprocess.run(cmd, capture_output=True, text=True)
+
+        if res.stdout:
+            (logger or print)(res.stdout)
+        if res.returncode != 0:
+            if res.stderr:
+                (logger or print)(res.stderr)
+            raise RuntimeError(f"pip install falló (code={res.returncode}).")
+
+        return res.returncode
+
+    @staticmethod
+    def pip_install_requirements_from_config(
+        cfg: Dict[str, Any],
+        *,
+        key: str = "load_requirements",
+        base_key: Optional[str] = "base_path",
+        fallback_base_path: Optional[str] = None,
+        logger=None
+    ) -> int:
+        if key not in cfg:
+            raise KeyError(f"No existe la llave '{key}' en la configuración.")
+
+        req = cfg[key]
+        if not isinstance(req, str):
+            raise TypeError(f"cfg['{key}'] debe ser string (ruta a requirements.txt).")
+
+        base_path = None
+        if base_key and isinstance(cfg.get(base_key), str) and cfg.get(base_key):
+            base_path = cfg.get(base_key)
+        else:
+            base_path = fallback_base_path
+
+        return Utils.pip_install_requirements(req, base_path=base_path, logger=logger)
