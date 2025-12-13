@@ -1,5 +1,6 @@
 {
-    "load_requirements": "/content/bigDataFinalProject/config/requirements.txt",
+    "base_path": "/content/bigDataFinalProject",
+    "load_requirements": "requirements.txt",
     "data_cruda": "/content/bigDataFinalProject/data/cruda",
     "data_procesada": "/content/bigDataFinalProject/data/procesada",
     "data_dashboard": "/content/bigDataFinalProject/data/dashboard"
