@@ -258,8 +258,20 @@ class DataLoader123:
         }
 
         df["DIA_SEMANA"] = df["DIA_SEMANA_EN"].map(map_dias)
+        df = df.copy()
+
+        # Seleccionar solo columnas de tipo texto (object / string)
         cols_texto = df.select_dtypes(include=["object", "string"]).columns
-        df[cols_texto] = df[cols_texto].apply(lambda col: col.str.upper())
+
+        for col in cols_texto:
+            # convertir a string, limpiar caracteres raros y pasar a MAYÚSCULA
+            df[col] = (
+                df[col]
+                .astype("string")                               # asegurar tipo texto
+                .str.replace("\xa0", " ", regex=False)          # quitar espacios no separables
+                .str.strip()                                    # quitar espacios al inicio/fin
+                .str.upper()                                    # MAYÚSCULAS
+            )
 
         return df
 
