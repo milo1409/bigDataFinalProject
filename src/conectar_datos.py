@@ -1,5 +1,4 @@
-from typing import Optional, List
-from functools import reduce
+from typing import Optional
 from pyspark.sql import DataFrame, SparkSession
 
 
@@ -9,8 +8,17 @@ class ExtraerDatosProcesamiento:
         self.Utils = utils
         self.config = config
 
-    def generar_formato_parquet(self, df: DataFrame, config: str, mode: str = "overwrite"):
-        salida_parquet = salida_parquet['data_procesada']
-        salida = self.Utils.resolve_path(salida_parquet, base_path=self.config.get("base_path"))
-        ruta_salida_parquet = df.write.mode(mode).parquet(salida)
-        return ruta_salida_parquet
+    def generar_formato_parquet(self,df: DataFrame,mode: str = "overwrite") -> str:
+
+        salida_relativa = self.config.get("data_procesada")
+        if salida_relativa is None:
+            raise ValueError("La clave 'data_procesada' no existe en el config.")
+
+        salida_absoluta = self.Utils.resolve_path(
+            salida_relativa,
+            base_path=self.config.get("base_path")
+        )
+
+        df.write.mode(mode).parquet(salida_absoluta)
+
+        return salida_absoluta
