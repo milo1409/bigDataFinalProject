@@ -11,8 +11,13 @@ class ExtraerDatosProcesamiento:
         self.Utils = utils
         self.config = config
 
-    def _write_partitioned_parquet(self, df: DataFrame, partition_cols: List[str], subdir: str,mode: str = "overwrite") -> str:
-       
+    def _write_partitioned_parquet(
+        self,
+        df: DataFrame,
+        partition_cols: List[str],
+        subdir: str,
+        mode: str = "overwrite"
+    ) -> str:
         rel_base = self.config.get("data_procesada")
         if rel_base is None:
             raise ValueError("Falta la clave 'data_procesada' en config")
@@ -29,38 +34,50 @@ class ExtraerDatosProcesamiento:
 
         return salida
 
-    def generar_parquets_dashboard_spark(self, df: DataFrame, mode: str = "overwrite") -> Dict[str, str]:
-      
-        # 1) Tendencia diaria: FECHA → TOTAL
+    def generar_parquets_dashboard_spark(
+        self,
+        df,                     
+        mode: str = "overwrite"
+    ) -> Dict[str, str]:
+
+        if isinstance(df, pd.DataFrame):
+            df_s = self.spark.createDataFrame(df)
+        elif isinstance(df, DataFrame):
+            df_s = df
+        else:
+            raise TypeError("df debe ser un pandas.DataFrame o un pyspark.sql.DataFrame")
+
+        # 1. Tendencia diaria: FECHA → TOTAL
         df_diario = (
-            df.groupBy("FECHA")
-              .agg(F.count(F.lit(1)).alias("TOTAL"))
+            df_s.groupBy("FECHA")
+                .agg(F.count(F.lit(1)).alias("TOTAL"))
         )
 
-        # 2) Heatmap: DIA_SEMANA x HORA → TOTAL
+        # 2. Heatmap: DIA_SEMANA x HORA → TOTAL
         df_hm = (
-            df.groupBy("DIA_SEMANA", "HORA")
-              .agg(F.count(F.lit(1)).alias("TOTAL"))
+            df_s.groupBy("DIA_SEMANA", "HORA")
+                .agg(F.count(F.lit(1)).alias("TOTAL"))
         )
 
-        # 3) Localidades: LOCALIDAD → TOTAL
+        # 3. Localidades: LOCALIDAD → TOTAL
         df_loc = (
-            df.groupBy("LOCALIDAD")
-              .agg(F.count(F.lit(1)).alias("TOTAL"))
+            df_s.groupBy("LOCALIDAD")
+                .agg(F.count(F.lit(1)).alias("TOTAL"))
         )
 
-        # 4) Tipos de incidente: TIPO_INCIDENTE → TOTAL
+        # 4. Tipos de incidente: TIPO_INCIDENTE → TOTAL
         df_tipo = (
-            df.groupBy("TIPO_INCIDENTE")
-              .agg(F.count(F.lit(1)).alias("TOTAL"))
+            df_s.groupBy("TIPO_INCIDENTE")
+                .agg(F.count(F.lit(1)).alias("TOTAL"))
         )
 
-        # 5) Sunburst: PRIORIDAD_FINAL x TIPO_INCIDENTE → TOTAL
+        # 5. Sunburst: PRIORIDAD_FINAL x TIPO_INCIDENTE → TOTAL
         df_sb = (
-            df.groupBy("PRIORIDAD_FINAL", "TIPO_INCIDENTE")
-              .agg(F.count(F.lit(1)).alias("TOTAL"))
+            df_s.groupBy("PRIORIDAD_FINAL", "TIPO_INCIDENTE")
+                .agg(F.count(F.lit(1)).alias("TOTAL"))
         )
 
+        # 🔹 3) Escribir en parquet particionado
         rutas: Dict[str, str] = {}
 
         rutas["diario"] = self._write_partitioned_parquet(
