@@ -188,7 +188,9 @@ class DataLoader123:
             "611":"MALTRATO",
             "606":"ELECTROCUCION",
             "615":"QUEMADURAS",
-            "DOLOR TOR CICO":"DOLOR TORACICO"
+            "DOLOR TOR CICO":"DOLOR TORACICO",
+            "715":"EVENTO NATURAL",
+            "SIN_D":np.nan
         }
 
         mapeo_propiedad_final = {
