@@ -3,39 +3,6 @@
     "load_requirements": "config/requirements.txt",
     "data_cruda": "data/cruda",
     "data_procesada": "data/procesada",
-    "data_dashboard": "data/dashboard",
-    "quality":{
-        "columnas_esperadas": ["NUMERO_INCIDENTE","FECHA_INICIO_DESPLAZAMIENTO_MOVIL","CODIGO_LOCALIDAD","LOCALIDAD","EDAD","UNIDAD","GENERO","TIPO_INCIDENTE","PRIORIDAD_FINAL","RECEPCION"],
-        "duplicate_groups": {
-            "NUMERO_INCIDENTE":["NUMERO_INCIDENTE"],
-            "FECHA_INICIO_DESPLAZAMIENTO_MOVIL":["FECHA_INICIO_DESPLAZAMIENTO_MOVIL","FECHA_INICIO_DESPLAZAMIENTO_MOVIL.1","FECHA_INICIO_DESPLAZAMIENTO_MOVIl","FECHA_INICIO_DESPLAZAMIENTO_MOVIl.1","FECHA_INICIO_DESPLAZAMIENTO-MOVIL","FECHA_DESPACHO_518"],
-            "PRIORIDAD_FINAL":["PRIORIDAD_FINAL","PRIORIDAD FINAL","PRIORIDAD"],
-            "CODIGO_LOCALIDAD":["CODIGO_LOCALIDAD","CODIGO DE LOCALIDAD","COD_LOCALIDAD"]
-        },
-        "catalogo_localidades":{
-            "USAQUEN":"1",
-            "CHAPINERO":"2",
-            "SANTA FE":"3",
-            "SAN CRISTOBAL":"4",
-            "USME":"5",
-            "TUNJUELITO":"6",
-            "BOSA":"7",
-            "KENNEDY":"8",
-            "FONTIBON":"9",
-            "ENGATIVA":"10",
-            "SUBA":"11",
-            "BARRIOS UNIDOS":"12",
-            "TEUSAQUILLO":"13",
-            "LOS MARTIRES":"14",
-            "ANTONIO NARINO":"15",
-            "PUENTE ARANDA":"16",
-            "CANDELARIA":"17",
-            "RAFAEL URIBE URIBE":"18",
-            "CIUDAD BOLIVAR": "19",
-            "SUMAPAZ":"20",
-            "SIN_D":"SIN_D"
-
-        }
-    }
+    "data_dashboard": "data/dashboard"
 
 }

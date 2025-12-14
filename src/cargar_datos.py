@@ -43,9 +43,16 @@ class DataLoader123:
         return df
 
     @staticmethod
-    def unificar_columnas_duplicadas(df: pd.DataFrame, duplicate_groups: Dict) -> pd.DataFrame:
+    def unificar_columnas_duplicadas(df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
         df = df.replace(r"^\s*$", pd.NA, regex=True)
+
+        duplicate_groups = {
+            "NUMERO_INCIDENTE":["NUMERO_INCIDENTE"],
+            "FECHA_INICIO_DESPLAZAMIENTO_MOVIL":["FECHA_INICIO_DESPLAZAMIENTO_MOVIL","FECHA_INICIO_DESPLAZAMIENTO_MOVIL.1","FECHA_INICIO_DESPLAZAMIENTO_MOVIl","FECHA_INICIO_DESPLAZAMIENTO_MOVIl.1","FECHA_INICIO_DESPLAZAMIENTO-MOVIL","FECHA_DESPACHO_518"],
+            "PRIORIDAD_FINAL":["PRIORIDAD_FINAL","PRIORIDAD FINAL","PRIORIDAD"],
+            "CODIGO_LOCALIDAD":["CODIGO_LOCALIDAD","CODIGO DE LOCALIDAD","COD_LOCALIDAD"]
+        }
 
         for canon, variantes in duplicate_groups.items():
             presentes = [c for c in variantes if c in df.columns]
@@ -70,11 +77,20 @@ class DataLoader123:
         return df
 
     @staticmethod
-    def procesar_todos_csv_crudos(
-        ruta_cruda: str,
-        duplicate_groups: Dict,
-        columnas_esperadas: List[str]
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def procesar_todos_csv_crudos(ruta_cruda: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+
+        columnas_esperadas = [
+            "NUMERO_INCIDENTE",
+            "FECHA_INICIO_DESPLAZAMIENTO_MOVIL",
+            "CODIGO_LOCALIDAD",
+            "LOCALIDAD",
+            "EDAD",
+            "UNIDAD",
+            "GENERO",
+            "TIPO_INCIDENTE",
+            "PRIORIDAD_FINAL",
+            "RECEPCION"
+            ],
 
         archivos = [
             os.path.join(ruta_cruda, f)
@@ -91,7 +107,7 @@ class DataLoader123:
                 continue
 
             df = DataLoader123.reparar_dataframe_pandas(df)
-            df = DataLoader123.unificar_columnas_duplicadas(df, duplicate_groups)
+            df = DataLoader123.unificar_columnas_duplicadas(df)
 
             df = df.loc[:, ~df.columns.astype(str).str.startswith("Unnamed")]
 
@@ -105,6 +121,7 @@ class DataLoader123:
 
         return df_total, df_inconsistencias_total
     
+    @staticmethod
     def estandarizacion_columnas(df):
 
         df = df.copy()
@@ -114,10 +131,10 @@ class DataLoader123:
         for col in cols_texto:
             df[col] = (
                 df[col]
-                .astype("string")                               # asegurar tipo texto
-                .str.replace("\xa0", " ", regex=False)          # quitar espacios no separables
-                .str.strip()                                    # quitar espacios al inicio/fin
-                .str.upper()                                    # MAYÚSCULAS
+                .astype("string")                               
+                .str.replace("\xa0", " ", regex=False)          
+                .str.strip()                                    
+                .str.upper()                                    
             )
 
         REEMPLAZOS_COMUNES = {
