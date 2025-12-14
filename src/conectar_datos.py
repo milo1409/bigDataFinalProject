@@ -9,9 +9,6 @@ class ExtraerDatosProcesamiento:
         self.Utils = utils
         self.config = config
 
-    def conectar_datos(self):
-        pass
-
     def generar_formato_parquet(self, df: DataFrame, salida_parquet: str, mode: str = "overwrite"):
         salida = self.Utils.resolve_path(salida_parquet, base_path=self.config.get("base_path"))
         df.write.mode(mode).parquet(salida)

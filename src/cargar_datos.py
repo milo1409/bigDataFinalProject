@@ -77,7 +77,12 @@ class DataLoader123:
         return df
 
     @staticmethod
-    def procesar_todos_csv_crudos(ruta_cruda: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def procesar_todos_csv_crudos(config: str) -> Tuple[pd.DataFrame, pd.DataFrame]:
+
+        folder_base = config['base_path']
+        ruta_cruda = config['data_cruda']
+        
+        ruta_cruda = os.path.join(folder_base,ruta_cruda)
 
         columnas_esperadas = [
             "NUMERO_INCIDENTE",
