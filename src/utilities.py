@@ -118,7 +118,6 @@ class Utils:
     
         req_path = Utils.resolve_path(requirements_file, base_path=base_path)
 
-        # Usar el mismo python del runtime
         cmd = [sys.executable, "-m", "pip", "install", "-r", req_path]
         res = subprocess.run(cmd, capture_output=True, text=True)
 
