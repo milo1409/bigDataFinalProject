@@ -135,7 +135,7 @@ class DataLoader123:
             "AÇÑOS": "AÑOS",
             "SIN_DATO": np.nan,
             "NAN": np.nan,
-            "CONVULSINN":"CONVULSIÓN",
+            "CONVULSINN":"CONVULSION",
             "CONVULSIÓN":"CONVULSION",
             "INTOXICACINN":"INTOXICACION",
             "INTOXICACIÓN":"INTOXICACION",
@@ -144,9 +144,12 @@ class DataLoader123:
             "ACCIDENTE DE AVIACINN": "ACCIDENTE DE AVIACION",
             "DOLOR TORAXCICO":"DOLOR TORÁCICO",
             "DOLOR TORÁCICO":"DOLOR TORACICO",
+            "DOLOR TOR CICO":"DOLOR TORACICO",
             "PATOLOGÍA GINECOBSTÉTRICA":"PATOLOGIA GINECOBSTETRICA",
+            "PATOLOGOA GINECOBST\x90TRICA":"PATOLOGIA GINECOBSTETRICA",
             "SÍNTOMAS GASTROINTESTINALES":"SINTOMAS GASTROINTESTINALES",
             "CAÍDA DE ALTURA":"CAIDA DE ALTURA",
+            "CAODA DE ALTURA":"CAIDA DE ALTURA",
             "ACOMPAÑAMIENTO EVENTO":"ACOMPANAMIENTO EVENTO",
             "ACOEVE":"ACV",
             "CRITCA":"CRITICA",
@@ -165,25 +168,34 @@ class DataLoader123:
             "LOS M RTIRES":"LOS MARTIRES",
             "M":"MASCULINO",
             "F":"FEMENINO",
-            '608':"HERIDO",
-            '603':"CONVULSION",
-            '601':"ACV",
-            '924':"ENFERMO",
-            '609':"AMESUI",
-            '613':"INCONSCIENTE",
-            '604':"EVERES",
-            '941':"TRASTMENT", 
-            '610':"INTOXICACION", 
-            '602':"CAIDA ALTURA",
-            '918':"INTENTO SUICIDIO",
-            '617':"SINTOMAS GASTROINTESTINALES",
-            '607':"PATOLOGIA GINECOOBSTRETICA",
-            '906':"VIOLENCIA SEXUAL",
-            '616':"SANGRADO VAGINAL",
-            '605':"DOLOR TORAXICO",
-            '611':"MALTRATO",
-            '606':"ELECTROCUCION",
-            '615':"QUEMADURAS"
+            "608":"HERIDO",
+            "603":"CONVULSION",
+            "601":"ACV",
+            "924":"ENFERMO",
+            "609":"AMESUI",
+            "613":"INCONSCIENTE",
+            "604":"EVERES",
+            "941":"TRASTMENT", 
+            "610":"INTOXICACION", 
+            "602":"CAIDA DE ALTURA",
+            "918":"INTENTO SUICIDIO",
+            "617":"SINTOMAS GASTROINTESTINALES",
+            "SONTOMAS GASTROINTESTINALES":"SINTOMAS GASTROINTESTINALES",
+            "607":"PATOLOGIA GINECOBSTETRICA",
+            "906":"VIOLENCIA SEXUAL",
+            "616":"SANGRADO VAGINAL",
+            "605":"DOLOR TORAXICO",
+            "611":"MALTRATO",
+            "606":"ELECTROCUCION",
+            "615":"QUEMADURAS",
+            "DOLOR TOR CICO":"DOLOR TORACICO"
+        }
+
+        mapeo_propiedad_final = {
+            "1":"CRITICA",
+            "2":"ALTA",
+            "3":"MEDIA",
+            "4":"BAJA"
         }
 
         catalogo_localidades = {
@@ -272,6 +284,7 @@ class DataLoader123:
         df["UNIDAD"] = df["UNIDAD"].replace(mapeo_unidad)
         df["TIPO_INCIDENTE"] = df["TIPO_INCIDENTE"].replace(mapeo_unidad)
         df["PRIORIDAD_FINAL"] = df["PRIORIDAD_FINAL"].replace(mapeo_unidad)
+        df["PRIORIDAD_FINAL"] = df["PRIORIDAD_FINAL"].replace(mapeo_propiedad_final)
         df = reparar_dataframe_pandas(df)
         df["FECHA_INICIO_DESPLAZAMIENTO_MOVIL"] = pd.to_datetime(df["FECHA_INICIO_DESPLAZAMIENTO_MOVIL"], errors="coerce")
         df["FECHA"] = df["FECHA_INICIO_DESPLAZAMIENTO_MOVIL"].dt.date
